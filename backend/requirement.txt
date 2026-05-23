@@ -1,0 +1,6 @@
+venv
+fastapi 
+uvicorn
+google-genai
+dotenv
+urllib3<2.0
