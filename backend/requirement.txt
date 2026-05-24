@@ -3,4 +3,4 @@ fastapi
 uvicorn
 google-genai
 dotenv
-urllib3<2.0
+pydantic

@@ -14,7 +14,7 @@ client = genai.Client( api_key=api_key)
 
 chat = client.chats.create(model="gemini-2.5-flash")
 
-def getQuestion(input: string):
+def getQuestion(input: str):
     response1 = chat.send_message(input)
     ans=""
     for part in response1.candidates[0].content.parts:
