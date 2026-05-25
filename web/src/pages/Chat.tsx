@@ -1,15 +1,33 @@
 import axios from "axios";
 import { useEffect, useRef, useState } from "react";
-
-const API_URL = "http://127.0.0.1:8000/";
+import { API_URL } from "../utils/constants";
+import { useNavigate } from "react-router-dom";
 
 const Chat = () => {
+  const navigate = useNavigate();
   const [messages, setMessages] = useState([
     { id: 1, text: "Hello! How can I help you?", sender: "bot" },
   ]);
   const [loading, setLoading] = useState(false);
   const [input, setInput] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
+
+useEffect(() => {
+  const validate = async () => {
+    try {
+      const res = await axios.get(API_URL + "session_valid", {
+        withCredentials: true,
+      });
+      if (res.data.status_code !== 200) {
+        navigate("/login");
+      }
+    } catch (err) {
+      console.error(err, "session not validated");
+      navigate("/login");
+    }
+  };
+  validate();
+}, [navigate]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -34,6 +52,7 @@ const Chat = () => {
       setMessages((prev) => [...prev, botMessage]);
     } catch (err) {
       console.error(err, "something went wrong");
+      //  console.error(, "something went wrong");
     } finally {
       setLoading(false);
     }
@@ -130,7 +149,7 @@ const Chat = () => {
             outline: "none",
             fontSize: "14px",
             background: "#f0f2f5",
-            color:"black"
+            color: "black",
           }}
         />
         <button
