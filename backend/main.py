@@ -45,7 +45,8 @@ async def get_input(question: Question,request: Request):
     input=question.input
     response=getQuestion(input)
     return{
-        "response":response
+        "response":response["ans"],
+        "metadata":response["metadata"]
     }
 
 @app.get("/session_valid")
