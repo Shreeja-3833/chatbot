@@ -12,22 +12,22 @@ const Chat = () => {
   const [input, setInput] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
 
-useEffect(() => {
-  const validate = async () => {
-    try {
-      const res = await axios.get(API_URL + "session_valid", {
-        withCredentials: true,
-      });
-      if (res.data.status_code !== 200) {
+  useEffect(() => {
+    const validate = async () => {
+      try {
+        const res = await axios.get(API_URL + "session_valid", {
+          withCredentials: true,
+        });
+        if (res.data.status_code !== 200) {
+          navigate("/login");
+        }
+      } catch (err) {
+        console.error(err, "session not validated");
         navigate("/login");
       }
-    } catch (err) {
-      console.error(err, "session not validated");
-      navigate("/login");
-    }
-  };
-  validate();
-}, [navigate]);
+    };
+    validate();
+  }, [navigate]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -44,6 +44,8 @@ useEffect(() => {
 
     try {
       const res = await axios.post(API_URL + "get_input", { input });
+      console.log(res.data.response, "res.data.response");
+
       const botMessage = {
         id: Date.now(),
         text: res.data.response,
