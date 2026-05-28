@@ -1,15 +1,44 @@
 import hashlib
+import os
 from fastapi import FastAPI,Depends, Request, Response, HTTPException
 from fastapi.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from models.models import Question, User
-from services.llm import getQuestion
+# from services.llm import GeminiClient, GeminiConfig
+from services.llm import GeminiClient, GeminiConfig
 from services.session_layer import validate_session, create_random_session_string, three_day_expiry
+from services.pipeline import IngestionPipeline, PipelineInput
 from router.routes import router
 from config.database import collection_name,session_collection_name
+from contextlib import asynccontextmanager
+from dotenv import load_dotenv
 
-app = FastAPI()
+model=GeminiClient
+pipeline=IngestionPipeline
+load_dotenv()
+
+@asynccontextmanager
+async def lifespan(app:FastAPI):
+    global model, pipeline
+    api_key=os.getenv("API_KEY")
+
+    config = GeminiConfig(
+        api_key=api_key,
+        model=os.getenv("GEMINI_MODEL", "gemini-3.5-flash"),
+    )
+    model=GeminiClient(config)
+    pipeline=IngestionPipeline(client=model)
+
+    print("Model and pipeline ready")
+
+    yield
+
+    print("Shutting down", model.active_sessions())
+
+
+
+app = FastAPI(title="Chatbot", lifespan=lifespan)
 
 origins=["http://localhost:5173"]
 app.add_middleware(CORSMiddleware,           
@@ -34,7 +63,6 @@ app.include_router(router)
 # except Exception as e:
 #     print(e)
 
-
 @app.get("/")
 def read_root():
     return {"Hello": "World"}
@@ -43,10 +71,22 @@ def read_root():
 async def get_input(question: Question,request: Request):
     session_id=request.cookies.get("Authorization")
     input=question.input
-    response=getQuestion(input)
+
+    pipeline_input=PipelineInput(text=input, session_id=session_id)
+
+    try:
+        response=pipeline.run(pipeline_input)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc))
+    except Exception as exc:
+        print("Pipeline error for session %s", session_id)
+        raise HTTPException(status_code=500, detail="Internal pipeline error.") from exc
+        
+    # response=getQuestion(input)
+    # print(response.answer,'response.answer')
     return{
-        "response":response["ans"],
-        "metadata":response["metadata"]
+        "response":response.answer,
+        # "metadata":response["metadata"]
     }
 
 @app.get("/session_valid")
