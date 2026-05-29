@@ -10,11 +10,13 @@ logger=logging.getLogger(__name__)
 class PipelineInput:
     text: str
     session_id: str
-    user_id: Optional[str] = None 
- 
+    conversation_id: Optional[str] = None
+    user_id: Optional[str] = None
+
 @dataclass
 class PipelineOutput:
     answer: str
+    metadata: dict = field(default_factory=dict)
 
 PreprocessFn=Callable[[PipelineInput], PipelineInput]
 PostprocessFn=Callable[[PipelineOutput], PipelineOutput]
@@ -60,17 +62,15 @@ class IngestionPipeline:
         for step in self.pre_steps:
             input=step(input)
 
-        response=self.client.send_msg(session_id=input.session_id, input=input.text)
+        session_key=input.conversation_id or input.session_id
+        response=self.client.send_msg(session_id=session_key, input=input.text)
 
-        output=PipelineOutput(answer=response["response"])
+        output=PipelineOutput(answer=response["response"], metadata=response["metadata"])
 
         for step in self.post_steps:
             output=step(output)
 
-        gemini_metadata=response["metadata"]
-        print(gemini_metadata,'gemini_metadata gemini_metadata gemini_metadata')
-
-        pipeline_end=time.perf_counter()-pipeline_start #store pipeline time and metadata in db
+        output.metadata["pipeline_ms"]=round((time.perf_counter()-pipeline_start)*1000, 2)
 
         return output
         

@@ -11,3 +11,5 @@ client=MongoClient(dbURL)
 db=client.user_db
 collection_name=db["user_db"]
 session_collection_name=db["session_db"]
+conversation_collection=db["conversations"]
+message_collection=db["messages"]

@@ -19,15 +19,16 @@ class GeminiConfig:
     model: str = "gemini-2.5-flash"
 
 class GeminiClient:
-    def __init__(self, config:GeminiConfig):
+    def __init__(self, config:GeminiConfig, history_loader=None):
         self.config=config
         self._client = genai.Client(api_key=config.api_key)
         self._chat_sessions: dict[str, object] = {}
+        self._history_loader=history_loader
 
     def get_or_create_session(self, session_id:str):
         if session_id not in self._chat_sessions:
-            self._chat_sessions[session_id]=self._client.chats.create(model=self.config.model)
-            # logger.info("Created new chat session: %s", session_id)
+            history=self._history_loader(session_id) if self._history_loader else []
+            self._chat_sessions[session_id]=self._client.chats.create(model=self.config.model, history=history)
 
         return self._chat_sessions[session_id]
     
@@ -73,6 +74,7 @@ class GeminiClient:
         metadata=self.extract_metadata(response)
         metadata["session_id"]=session_id
         metadata["input"]=input
+        metadata["latency_ms"]=round(end*1000, 2)
 
 
         return {"response":ans, "metadata":metadata}

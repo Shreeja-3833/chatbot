@@ -1,5 +1,5 @@
 import secrets
-from fastapi import Request
+from fastapi import Request, HTTPException
 import logging
 from datetime import datetime,timedelta, timezone
 from config.database import session_collection_name
@@ -36,3 +36,13 @@ def validate_session(request: Request) -> bool:
     
     logging.info("Valid Session, Access granted.")
     return True
+
+
+def get_current_user(request: Request) -> str:
+    session_id = request.cookies.get("Authorization")
+    session = session_collection_name.find_one({"session_id": session_id})
+
+    if not session or datetime.utcnow() > session["expiry"]:
+        raise HTTPException(status_code=401, detail="Invalid or expired session")
+
+    return session["user_id"]

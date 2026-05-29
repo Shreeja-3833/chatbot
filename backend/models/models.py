@@ -4,6 +4,13 @@ from typing import Optional
 
 class Question(BaseModel):
     input: str
+    conversation_id: str
+
+class ConversationCreate(BaseModel):
+    title: Optional[str] = None
+
+class ConversationRename(BaseModel):
+    title: str
 
 class User(BaseModel):
     username: str

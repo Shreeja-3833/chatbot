@@ -2,6 +2,7 @@ venv
 fastapi 
 uvicorn
 google-genai
+pymongo
 dotenv
 pydantic
 starlette
