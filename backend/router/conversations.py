@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from models.models import ConversationCreate, ConversationRename
+from models.models import ConversationCreate
 from services.session_layer import get_current_user
 from services import conversation as repo
 
@@ -23,16 +23,3 @@ async def messages(conversation_id: str, user_id: str = Depends(get_current_user
         raise HTTPException(status_code=404, detail="Conversation not found")
     return repo.list_messages(conversation_id)
 
-
-@router.patch("/{conversation_id}")
-async def rename(conversation_id: str, body: ConversationRename, user_id: str = Depends(get_current_user)):
-    if not repo.rename_conversation(conversation_id, user_id, body.title.strip()):
-        raise HTTPException(status_code=404, detail="Conversation not found")
-    return {"status_code": 200, "message": "Renamed"}
-
-
-@router.delete("/{conversation_id}")
-async def remove(conversation_id: str, user_id: str = Depends(get_current_user)):
-    if not repo.delete_conversation(conversation_id, user_id):
-        raise HTTPException(status_code=404, detail="Conversation not found")
-    return {"status_code": 200, "message": "Deleted"}

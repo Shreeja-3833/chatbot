@@ -9,9 +9,6 @@ class Question(BaseModel):
 class ConversationCreate(BaseModel):
     title: Optional[str] = None
 
-class ConversationRename(BaseModel):
-    title: str
-
 class User(BaseModel):
     username: str
     password: str
