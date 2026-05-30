@@ -7,7 +7,7 @@ A Gemini-powered chatbot with conversation history, live token-by-token streamin
 * **Database:** MongoDB Atlas (cloud-hosted)
 * **LLM:** Google Gemini
 
-** Demo Loom Link:** https://www.loom.com/share/fbbdec70e9004000b1e26ea836303f63
+**Demo Loom Link:** https://www.loom.com/share/fbbdec70e9004000b1e26ea836303f63
 
 ## Features
 
