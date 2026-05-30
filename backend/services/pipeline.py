@@ -12,6 +12,7 @@ class PipelineInput:
     session_id: str
     conversation_id: Optional[str] = None
     user_id: Optional[str] = None
+    model: Optional[str] = None
 
 @dataclass
 class PipelineOutput:
@@ -63,7 +64,7 @@ class IngestionPipeline:
             input=step(input)
 
         session_key=input.conversation_id or input.session_id
-        response=self.client.send_msg(session_id=session_key, input=input.text)
+        response=self.client.send_msg(session_id=session_key, input=input.text, model=input.model)
 
         output=PipelineOutput(answer=response["response"], metadata=response["metadata"])
 
@@ -73,4 +74,32 @@ class IngestionPipeline:
         output.metadata["pipeline_ms"]=round((time.perf_counter()-pipeline_start)*1000, 2)
 
         return output
+
+    def run_stream(self, input: PipelineInput):
+
+        pipeline_start = time.perf_counter()
+
+        for step in self.pre_steps:
+            input = step(input)
+
+        session_key = input.conversation_id or input.session_id
+
+        final_payload = None
+        for kind, value in self.client.send_msg_stream(
+            session_id=session_key, input=input.text, model=input.model
+        ):
+            if kind == "delta":
+                yield ("delta", value)
+            else:
+                final_payload = value
+
+        output = PipelineOutput(
+            answer=final_payload["response"], metadata=final_payload["metadata"]
+        )
+        for step in self.post_steps:
+            output = step(output)
+
+        output.metadata["pipeline_ms"] = round((time.perf_counter() - pipeline_start) * 1000, 2)
+
+        yield ("final", output)
         

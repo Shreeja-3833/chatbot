@@ -13,6 +13,8 @@ const Chat = () => {
   const [input, setInput] = useState("");
   const [conversationId, setConversationId] = useState<string | undefined>();
   const [conversations, setConversations] = useState<any[]>([]);
+  const [models, setModels] = useState<string[]>([]);
+  const [selectedModel, setSelectedModel] = useState<string>("");
   const bottomRef = useRef<HTMLDivElement>(null);
   const activeConvoRef = useRef<string | null>(null);
 
@@ -63,6 +65,22 @@ const Chat = () => {
   // console.log(conversations, "conversationsssssssss");
 
   useEffect(() => {
+    const loadModels = async () => {
+      try {
+        const res = await axios.get(API_URL + "models", {
+          withCredentials: true,
+        });
+        const list: string[] = res.data.models || [];
+        setModels(list);
+        if (list.length) setSelectedModel(list[0]);
+      } catch (err) {
+        console.error(err, "couldn't load models");
+      }
+    };
+    loadModels();
+  }, []);
+
+  useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
@@ -70,41 +88,81 @@ const Chat = () => {
     e.preventDefault();
     if (!input.trim()) return;
 
+    const userText = input;
     const inputMessage = {
       id: Date.now(),
-      text: input,
+      text: userText,
       sender: "user",
     };
-    setMessages((prev) => [...prev, inputMessage]);
+    const botId = Date.now() + 1;
+    setMessages((prev) => [
+      ...prev,
+      inputMessage,
+      { id: botId, text: "", sender: "bot" },
+    ]);
     setInput("");
     setLoading(true);
 
-    try {
-      const res = await axios.post(
-        API_URL + "get_input",
-        { input: input, conversation_id: conversationId },
-        {
-          withCredentials: true,
-        },
+    const appendToBot = (chunk: string) => {
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === botId ? { ...m, text: m.text + chunk } : m,
+        ),
       );
-      const botMessage = {
-        id: Date.now(),
-        text: res.data.response,
-        sender: "bot",
-      };
-      setMessages((prev) => [...prev, botMessage]);
-    } catch (err: any) {
-      const errStatus = err.response.status;
-      // console.error(errStatus, "something went wrong");
-      // if (errStatus == 422 || errStatus == 404) createConversation();
-      if (errStatus == 500) {
-        const botMessage = {
-          id: Date.now(),
-          text: "Something went wrong with the model, please try again later",
-          sender: "bot",
-        };
-        setMessages((prev) => [...prev, botMessage]);
+    };
+
+    try {
+      const res = await fetch(API_URL + "get_input_stream", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          input: userText,
+          conversation_id: conversationId,
+          model: selectedModel,
+        }),
+      });
+
+      if (!res.ok || !res.body) {
+        throw new Error(`Request failed with status ${res.status}`);
       }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let streamError = false;
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        const events = buffer.split("\n\n");
+        buffer = events.pop() || "";
+
+        for (const evt of events) {
+          if (!evt.trim()) continue;
+          const isError = evt.includes("event: error");
+          const dataLine = evt
+            .split("\n")
+            .find((l) => l.startsWith("data:"));
+          if (!dataLine) continue;
+          const payload = JSON.parse(dataLine.slice(5).trim());
+          if (isError) {
+            streamError = true;
+          } else if (payload.delta) {
+            appendToBot(payload.delta);
+          }
+        }
+      }
+
+      if (streamError) {
+        throw new Error("model error");
+      }
+    } catch (err: any) {
+      console.error(err, "something went wrong");
+      setMessages((prev) => prev.filter((m) => m.id !== botId));
+      alert("Something went wrong with the model, please try again later");
     } finally {
       setLoading(false);
     }
@@ -150,6 +208,62 @@ const Chat = () => {
         })}
       </Sidebar>
       <div className="flex flex-col flex-1 min-w-0 bg-[#f0f2f5]">
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "8px",
+            padding: "10px 16px",
+            background: "#ffffff",
+            borderBottom: "1px solid #ddd",
+          }}
+        >
+          <label
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              fontSize: "13px",
+              color: "#333",
+            }}
+          >
+            Model:
+            <select
+              value={selectedModel}
+              onChange={(e) => setSelectedModel(e.target.value)}
+              style={{
+                padding: "6px 10px",
+                borderRadius: "8px",
+                border: "1px solid #ddd",
+                fontSize: "13px",
+                background: "#f0f2f5",
+                color: "black",
+              }}
+            >
+              {models.map((m) => (
+                <option key={m} value={m}>
+                  {m}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button
+            type="button"
+            onClick={() => navigate("/dashboard")}
+            style={{
+              padding: "6px 14px",
+              borderRadius: "8px",
+              border: "1px solid #007bff",
+              background: "#ffffff",
+              color: "#007bff",
+              fontSize: "13px",
+              cursor: "pointer",
+            }}
+          >
+            Dashboard
+          </button>
+        </div>
         <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-2">
           {messages.map((msg) => (
             <div

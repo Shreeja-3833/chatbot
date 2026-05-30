@@ -1,9 +1,8 @@
-venv
-fastapi 
+fastapi
 uvicorn
 google-genai
 pymongo
-dotenv
+python-dotenv
 pydantic
 starlette
 itsdangerous
