@@ -1,5 +1,4 @@
-import { createBrowserRouter } from "react-router-dom";
-import { App } from "../App";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import Chat from "../pages/Chat";
 import Dashboard from "../pages/Dashboard";
 import { Login } from "../pages/Login";
@@ -8,7 +7,7 @@ import { Register } from "../pages/Register";
 export const router = createBrowserRouter([
   {
     path: "/",
-    element: <App />,
+    element: <Navigate to="/chat" replace/>,
   },
   {
     path: "/chat",

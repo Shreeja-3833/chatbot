@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { API_URL } from "../utils/constants";
 import { useNavigate } from "react-router-dom";
 import { Sidebar, SidebarItem } from "./Sidebar";
+import { MarkdownMessage } from "./Markdown";
 
 const Chat = () => {
   const navigate = useNavigate();
@@ -17,6 +18,7 @@ const Chat = () => {
   const [selectedModel, setSelectedModel] = useState<string>("");
   const bottomRef = useRef<HTMLDivElement>(null);
   const activeConvoRef = useRef<string | null>(null);
+  const initDone = useRef(false);
 
   const createConversation = async () => {
     try {
@@ -36,49 +38,44 @@ const Chat = () => {
   };
 
   useEffect(() => {
-    const validate = async () => {
+    if (initDone.current) return;
+    initDone.current = true;
+
+    const init = async () => {
       try {
         const res = await axios.get(API_URL + "session_valid", {
           withCredentials: true,
         });
         if (res.data.status_code !== 200) {
           navigate("/login");
+          return;
         }
-      } catch (err) {
-        console.error(err, "session not validated");
+      } catch {
         navigate("/login");
+        return;
       }
+
+      await Promise.all([
+        createConversation(),
+        axios
+          .get(API_URL + "conversations", { withCredentials: true })
+          .then((res) => setConversations(res.data))
+          .catch((err) => console.error(err)),
+        axios
+          .get(API_URL + "models", { withCredentials: true })
+          .then((res) => {
+            const list: string[] = res.data.models || [];
+            setModels(list);
+            if (list.length) setSelectedModel(list[0]);
+          })
+          .catch((err) => console.error(err)),
+      ]);
     };
-    validate();
+
+    init();
   }, [navigate]);
 
-  useEffect(() => {
-    const func = async () => {
-      const res = await axios.get(API_URL + "conversations", {
-        withCredentials: true,
-      });
-      setConversations(res.data)
-    };
-    createConversation();
-    func();
-  }, []);
   // console.log(conversations, "conversationsssssssss");
-
-  useEffect(() => {
-    const loadModels = async () => {
-      try {
-        const res = await axios.get(API_URL + "models", {
-          withCredentials: true,
-        });
-        const list: string[] = res.data.models || [];
-        setModels(list);
-        if (list.length) setSelectedModel(list[0]);
-      } catch (err) {
-        console.error(err, "couldn't load models");
-      }
-    };
-    loadModels();
-  }, []);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -105,9 +102,7 @@ const Chat = () => {
 
     const appendToBot = (chunk: string) => {
       setMessages((prev) =>
-        prev.map((m) =>
-          m.id === botId ? { ...m, text: m.text + chunk } : m,
-        ),
+        prev.map((m) => (m.id === botId ? { ...m, text: m.text + chunk } : m)),
       );
     };
 
@@ -143,9 +138,7 @@ const Chat = () => {
         for (const evt of events) {
           if (!evt.trim()) continue;
           const isError = evt.includes("event: error");
-          const dataLine = evt
-            .split("\n")
-            .find((l) => l.startsWith("data:"));
+          const dataLine = evt.split("\n").find((l) => l.startsWith("data:"));
           if (!dataLine) continue;
           const payload = JSON.parse(dataLine.slice(5).trim());
           if (isError) {
@@ -183,7 +176,7 @@ const Chat = () => {
         sender: msg.role,
       }));
       setMessages(newMessages);
-      setConversationId(id)
+      setConversationId(id);
     } catch (err: any) {
       console.error(err.response, "couldn't get messages");
     } finally {
@@ -198,7 +191,7 @@ const Chat = () => {
           return (
             <SidebarItem
               text={convo.title}
-              active={false}
+              // active={false}
               onClick={() => {
                 setMessages([]);
                 getMessages(convo.conversation_id);
@@ -237,15 +230,19 @@ const Chat = () => {
               key={msg.id}
               className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
             >
-              <span
-                className={`max-w-[70%] px-3.5 py-2.5 text-sm leading-normal shadow-sm break-words ${
-                  msg.sender === "user"
-                    ? "bg-[#007bff] text-white rounded-[18px_18px_4px_18px]"
-                    : "bg-white text-[#111] rounded-[18px_18px_18px_4px]"
-                }`}
-              >
-                {msg.text}
-              </span>
+              {msg.sender === "user" ? (
+                <span
+                  className={`max-w-[70%] px-3.5 py-2.5 text-sm leading-normal shadow-sm wrap-break-words ${
+                    msg.sender === "user"
+                      ? "bg-[#007bff] text-white rounded-[18px_18px_4px_18px]"
+                      : "bg-white text-[#111] rounded-[18px_18px_18px_4px]"
+                  }`}
+                >
+                  {msg.text}
+                </span>
+              ) : (
+                <MarkdownMessage content={msg.text} />
+              )}
             </div>
           ))}
           {loading && (
@@ -273,7 +270,9 @@ const Chat = () => {
             type="submit"
             disabled={loading}
             className={`px-5 py-2.5 rounded-3xl text-white border-none font-semibold text-sm ${
-              loading ? "bg-[#aaa] cursor-not-allowed" : "bg-[#007bff] cursor-pointer"
+              loading
+                ? "bg-[#aaa] cursor-not-allowed"
+                : "bg-[#007bff] cursor-pointer"
             }`}
           >
             Send
@@ -283,6 +282,5 @@ const Chat = () => {
     </div>
   );
 };
-
 
 export default Chat;

@@ -36,11 +36,11 @@ export const Sidebar = ({ children }: { children: ReactNode }) => {
 
 export const SidebarItem = ({
   text,
-  active,
+//   active,
   onClick,
 }: {
   text: string;
-  active: boolean;
+//   active?: boolean;
   onClick?: () => void;
 }) => {
   return (

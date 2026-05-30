@@ -2,14 +2,17 @@ from fastapi import APIRouter, Depends, HTTPException
 from models.models import ConversationCreate
 from services.session_layer import get_current_user
 from services import conversation as repo
+from config.database import conversation_collection
 
 router = APIRouter(prefix="/conversations", tags=["conversations"])
 
 
 @router.post("")
 async def create(body: ConversationCreate, user_id: str = Depends(get_current_user)):
-    title = body.title.strip() if body.title else repo.DEFAULT_TITLE
-    return repo.create_conversation(user_id, title or repo.DEFAULT_TITLE)
+    convos=conversation_collection.count_documents({})
+    default_title=repo.DEFAULT_TITLE +" "+str(convos)
+    title = body.title.strip() if body.title else default_title
+    return repo.create_conversation(user_id, title or default_title)
 
 
 @router.get("")
