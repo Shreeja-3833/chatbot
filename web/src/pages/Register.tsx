@@ -17,7 +17,7 @@ export const Register = () => {
     }
   };
   return (
-    <div style={{ display: "flex", flexDirection: "column" }}>
+    <div className="flex flex-col">
       <h4>Register</h4>
       <label>Username</label>
       <input
@@ -25,16 +25,7 @@ export const Register = () => {
         value={user.username}
         onChange={(e) => setUser({ ...user, username: e.target.value })}
         placeholder="Type a message..."
-        style={{
-          flex: 1,
-          padding: "10px 14px",
-          borderRadius: "24px",
-          border: "1px solid #ddd",
-          outline: "none",
-          fontSize: "14px",
-          background: "#f0f2f5",
-          color: "black",
-        }}
+        className="flex-1 px-3.5 py-2.5 rounded-3xl border border-[#ddd] outline-none text-sm bg-[#f0f2f5] text-black"
       />
       <label>Password</label>
       <input
@@ -42,27 +33,10 @@ export const Register = () => {
         value={user.password}
         onChange={(e) => setUser({ ...user, password: e.target.value })}
         placeholder="Type a message..."
-        style={{
-          flex: 1,
-          padding: "10px 14px",
-          borderRadius: "24px",
-          border: "1px solid #ddd",
-          outline: "none",
-          fontSize: "14px",
-          background: "#f0f2f5",
-          color: "black",
-        }}
+        className="flex-1 px-3.5 py-2.5 rounded-3xl border border-[#ddd] outline-none text-sm bg-[#f0f2f5] text-black"
       />
       <button
-        style={{
-          padding: "10px 20px",
-          borderRadius: "24px",
-          background: "#007bff",
-          color: "white",
-          border: "none",
-          fontWeight: 600,
-          fontSize: "14px",
-        }}
+        className="px-5 py-2.5 rounded-3xl bg-[#007bff] text-white border-none font-semibold text-sm"
         onClick={handleRegister}
       >
         Register

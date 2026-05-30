@@ -30,19 +30,9 @@ const WINDOWS = [
 ];
 
 const Card = ({ title, value }: { title: string; value: string }) => (
-  <div
-    style={{
-      flex: "1 1 160px",
-      background: "#fff",
-      borderRadius: "12px",
-      padding: "16px",
-      boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-    }}
-  >
-    <div style={{ fontSize: "13px", color: "#666" }}>{title}</div>
-    <div style={{ fontSize: "26px", fontWeight: 700, color: "#111" }}>
-      {value}
-    </div>
+  <div className="flex-[1_1_160px] bg-white rounded-xl p-4 shadow-sm">
+    <div className="text-[13px] text-[#666]">{title}</div>
+    <div className="text-[26px] font-bold text-[#111]">{value}</div>
   </div>
 );
 
@@ -75,36 +65,14 @@ const Dashboard = () => {
   const maxReq = summary?.models.reduce((m, s) => Math.max(m, s.requests), 0) || 1;
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background: "#f0f2f5",
-        padding: "24px",
-        boxSizing: "border-box",
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginBottom: "16px",
-        }}
-      >
-        <h1 style={{ fontSize: "22px", fontWeight: 700, color: "#111" }}>
-          Metrics Dashboard
-        </h1>
-        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+    <div className="min-h-screen bg-[#f0f2f5] p-6 box-border">
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-[22px] font-bold text-[#111]">Metrics Dashboard</h1>
+        <div className="flex gap-2 items-center">
           <select
             value={window}
             onChange={(e) => setWindow(Number(e.target.value))}
-            style={{
-              padding: "6px 10px",
-              borderRadius: "8px",
-              border: "1px solid #ddd",
-              background: "#fff",
-              color: "black",
-            }}
+            className="px-2.5 py-1.5 rounded-lg border border-[#ddd] bg-white text-black"
           >
             {WINDOWS.map((w) => (
               <option key={w.value} value={w.value}>
@@ -115,25 +83,18 @@ const Dashboard = () => {
           <button
             type="button"
             onClick={() => navigate("/chat")}
-            style={{
-              padding: "6px 14px",
-              borderRadius: "8px",
-              border: "1px solid #007bff",
-              background: "#fff",
-              color: "#007bff",
-              cursor: "pointer",
-            }}
+            className="px-3.5 py-1.5 rounded-lg border border-[#007bff] bg-white text-[#007bff] cursor-pointer"
           >
             Back to chat
           </button>
         </div>
       </div>
 
-      {loading && <p style={{ color: "#666" }}>Loading…</p>}
+      {loading && <p className="text-[#666]">Loading…</p>}
 
       {summary && (
         <>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "12px" }}>
+          <div className="flex flex-wrap gap-3">
             <Card title="Total requests" value={String(summary.total_requests)} />
             <Card
               title="Throughput"
@@ -153,66 +114,46 @@ const Dashboard = () => {
             />
           </div>
 
-          <h2
-            style={{
-              fontSize: "16px",
-              fontWeight: 600,
-              margin: "24px 0 12px",
-              color: "#111",
-            }}
-          >
+          <h2 className="text-base font-semibold mt-6 mb-3 text-[#111]">
             Per-model breakdown
           </h2>
-          <div
-            style={{
-              background: "#fff",
-              borderRadius: "12px",
-              padding: "12px",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-            }}
-          >
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "14px" }}>
+          <div className="bg-white rounded-xl p-3 shadow-sm">
+            <table className="w-full border-collapse text-sm">
               <thead>
-                <tr style={{ textAlign: "left", color: "#666" }}>
-                  <th style={{ padding: "8px" }}>Model</th>
-                  <th style={{ padding: "8px" }}>Requests</th>
-                  <th style={{ padding: "8px" }}>Errors</th>
-                  <th style={{ padding: "8px" }}>Avg latency</th>
-                  <th style={{ padding: "8px" }}>Tokens</th>
+                <tr className="text-left text-[#666]">
+                  <th className="p-2">Model</th>
+                  <th className="p-2">Requests</th>
+                  <th className="p-2">Errors</th>
+                  <th className="p-2">Avg latency</th>
+                  <th className="p-2">Tokens</th>
                 </tr>
               </thead>
               <tbody>
                 {summary.models.length === 0 && (
                   <tr>
-                    <td style={{ padding: "8px", color: "#999" }} colSpan={5}>
+                    <td className="p-2 text-[#999]" colSpan={5}>
                       No data in this window yet.
                     </td>
                   </tr>
                 )}
                 {summary.models.map((m) => (
-                  <tr key={m.model_name} style={{ borderTop: "1px solid #eee" }}>
-                    <td style={{ padding: "8px", color: "#111" }}>{m.model_name}</td>
-                    <td style={{ padding: "8px", color: "#111" }}>
+                  <tr key={m.model_name} className="border-t border-[#eee]">
+                    <td className="p-2 text-[#111]">{m.model_name}</td>
+                    <td className="p-2 text-[#111]">
                       <div
-                        style={{
-                          background: "#e6efff",
-                          borderRadius: "4px",
-                          width: `${(m.requests / maxReq) * 100}%`,
-                          minWidth: "24px",
-                          padding: "2px 6px",
-                          color: "#0050c8",
-                        }}
+                        className="bg-[#e6efff] rounded min-w-[24px] px-1.5 py-0.5 text-[#0050c8]"
+                        style={{ width: `${(m.requests / maxReq) * 100}%` }}
                       >
                         {m.requests}
                       </div>
                     </td>
-                    <td style={{ padding: "8px", color: m.errors ? "#c0392b" : "#111" }}>
+                    <td className={`p-2 ${m.errors ? "text-[#c0392b]" : "text-[#111]"}`}>
                       {m.errors}
                     </td>
-                    <td style={{ padding: "8px", color: "#111" }}>
+                    <td className="p-2 text-[#111]">
                       {m.avg_latency_ms != null ? `${m.avg_latency_ms} ms` : "—"}
                     </td>
-                    <td style={{ padding: "8px", color: "#111" }}>{m.total_tokens}</td>
+                    <td className="p-2 text-[#111]">{m.total_tokens}</td>
                   </tr>
                 ))}
               </tbody>

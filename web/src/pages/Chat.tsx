@@ -208,38 +208,13 @@ const Chat = () => {
         })}
       </Sidebar>
       <div className="flex flex-col flex-1 min-w-0 bg-[#f0f2f5]">
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: "8px",
-            padding: "10px 16px",
-            background: "#ffffff",
-            borderBottom: "1px solid #ddd",
-          }}
-        >
-          <label
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              fontSize: "13px",
-              color: "#333",
-            }}
-          >
+        <div className="flex items-center justify-between gap-2 px-4 py-2.5 bg-white border-b border-[#ddd]">
+          <label className="flex items-center gap-2 text-[13px] text-[#333]">
             Model:
             <select
               value={selectedModel}
               onChange={(e) => setSelectedModel(e.target.value)}
-              style={{
-                padding: "6px 10px",
-                borderRadius: "8px",
-                border: "1px solid #ddd",
-                fontSize: "13px",
-                background: "#f0f2f5",
-                color: "black",
-              }}
+              className="px-2.5 py-1.5 rounded-lg border border-[#ddd] text-[13px] bg-[#f0f2f5] text-black"
             >
               {models.map((m) => (
                 <option key={m} value={m}>
@@ -251,15 +226,7 @@ const Chat = () => {
           <button
             type="button"
             onClick={() => navigate("/dashboard")}
-            style={{
-              padding: "6px 14px",
-              borderRadius: "8px",
-              border: "1px solid #007bff",
-              background: "#ffffff",
-              color: "#007bff",
-              fontSize: "13px",
-              cursor: "pointer",
-            }}
+            className="px-3.5 py-1.5 rounded-lg border border-[#007bff] bg-white text-[#007bff] text-[13px] cursor-pointer"
           >
             Dashboard
           </button>
@@ -268,44 +235,22 @@ const Chat = () => {
           {messages.map((msg) => (
             <div
               key={msg.id}
-              style={{
-                display: "flex",
-                justifyContent:
-                  msg.sender === "user" ? "flex-end" : "flex-start",
-              }}
+              className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
             >
               <span
-                style={{
-                  maxWidth: "70%",
-                  background: msg.sender === "user" ? "#007bff" : "#ffffff",
-                  color: msg.sender === "user" ? "white" : "#111",
-                  padding: "10px 14px",
-                  borderRadius:
-                    msg.sender === "user"
-                      ? "18px 18px 4px 18px"
-                      : "18px 18px 18px 4px",
-                  fontSize: "14px",
-                  lineHeight: "1.5",
-                  boxShadow: "0 1px 2px rgba(0,0,0,0.1)",
-                  wordBreak: "break-word",
-                }}
+                className={`max-w-[70%] px-3.5 py-2.5 text-sm leading-normal shadow-sm break-words ${
+                  msg.sender === "user"
+                    ? "bg-[#007bff] text-white rounded-[18px_18px_4px_18px]"
+                    : "bg-white text-[#111] rounded-[18px_18px_18px_4px]"
+                }`}
               >
                 {msg.text}
               </span>
             </div>
           ))}
           {loading && (
-            <div style={{ display: "flex", justifyContent: "flex-start" }}>
-              <span
-                style={{
-                  background: "#ffffff",
-                  padding: "10px 14px",
-                  borderRadius: "18px 18px 18px 4px",
-                  fontSize: "20px",
-                  boxShadow: "0 1px 2px rgba(0,0,0,0.1)",
-                  letterSpacing: "2px",
-                }}
-              >
+            <div className="flex justify-start">
+              <span className="bg-white px-3.5 py-2.5 rounded-[18px_18px_18px_4px] text-xl shadow-sm tracking-[2px]">
                 •••
               </span>
             </div>
@@ -315,43 +260,21 @@ const Chat = () => {
 
         <form
           onSubmit={sendMessage}
-          style={{
-            display: "flex",
-            gap: "8px",
-            padding: "12px 16px",
-            background: "#ffffff",
-            borderTop: "1px solid #ddd",
-          }}
+          className="flex gap-2 px-4 py-3 bg-white border-t border-[#ddd]"
         >
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Type a message..."
-            style={{
-              flex: 1,
-              padding: "10px 14px",
-              borderRadius: "24px",
-              border: "1px solid #ddd",
-              outline: "none",
-              fontSize: "14px",
-              background: "#f0f2f5",
-              color: "black",
-            }}
+            className="flex-1 px-3.5 py-2.5 rounded-3xl border border-[#ddd] outline-none text-sm bg-[#f0f2f5] text-black"
           />
           <button
             type="submit"
             disabled={loading}
-            style={{
-              padding: "10px 20px",
-              borderRadius: "24px",
-              background: loading ? "#aaa" : "#007bff",
-              color: "white",
-              border: "none",
-              cursor: loading ? "not-allowed" : "pointer",
-              fontWeight: 600,
-              fontSize: "14px",
-            }}
+            className={`px-5 py-2.5 rounded-3xl text-white border-none font-semibold text-sm ${
+              loading ? "bg-[#aaa] cursor-not-allowed" : "bg-[#007bff] cursor-pointer"
+            }`}
           >
             Send
           </button>
