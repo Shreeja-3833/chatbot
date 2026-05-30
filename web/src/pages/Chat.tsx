@@ -55,14 +55,12 @@ const Chat = () => {
       const res = await axios.get(API_URL + "conversations", {
         withCredentials: true,
       });
-      // console.log(res, "response for converstation");
-      res.data.map((convo: any) => {
-        setConversations((prev) => [...prev, convo]);
-      });
+      setConversations(res.data)
     };
+    createConversation();
     func();
   }, []);
-  console.log(conversations, "conversationsssssssss");
+  // console.log(conversations, "conversationsssssssss");
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -98,7 +96,7 @@ const Chat = () => {
     } catch (err: any) {
       const errStatus = err.response.status;
       // console.error(errStatus, "something went wrong");
-      if (errStatus == 422 || errStatus == 404) createConversation();
+      // if (errStatus == 422 || errStatus == 404) createConversation();
       if (errStatus == 500) {
         const botMessage = {
           id: Date.now(),
